@@ -184,9 +184,59 @@ fn call(stack: &mut Vec<i64>, tokens: &mut TokenColelction) {
             let second = stack.pop().expect("There is no number to be substracted.");
             stack.push(second - first);
         },
-        "pop" => {
-            print!("{}", stack.pop().expect("There is no number to be printed"));
+        "*" => {
+            let first = stack.pop().expect("There is no number to be multiplied.");
+            let second = stack.pop().expect("There is no number to be multiplied.");
+            stack.push(first * second);
         },
+        "/" => {
+            let first = stack.pop().expect("There is no number to be divided.");
+            let second = stack.pop().expect("There is no number to be divided.");
+            stack.push(second / first);
+        },
+        "%" => {
+            let first = stack.pop().expect("There is no number to be divided .");
+            let second = stack.pop().expect("There is no number to be divided.");
+            stack.push(second.rem_euclid(first));
+        },
+        "==" => {
+            let first = stack.pop().expect("There is no number to be compared.");
+            let second = stack.pop().expect("There is no number to be compared.");
+            stack.push(if second == first { 1 } else { 0 });
+        },
+        "!=" => {
+            let first = stack.pop().expect("There is no number to be compared.");
+            let second = stack.pop().expect("There is no number to be compared.");
+            stack.push(if second != first { 1 } else { 0 });
+        },
+        "<" => {
+            let first = stack.pop().expect("There is no number to be compared.");
+            let second = stack.pop().expect("There is no number to be compared.");
+            stack.push(if second < first { 1 } else { 0 });
+        },
+        ">" => {
+            let first = stack.pop().expect("There is no number to be compared.");
+            let second = stack.pop().expect("There is no number to be compared.");
+            stack.push(if second > first { 1 } else { 0 });
+        },
+        "<=" => {
+            let first = stack.pop().expect("There is no number to be compared.");
+            let second = stack.pop().expect("There is no number to be compared.");
+            stack.push(if second <= first { 1 } else { 0 });
+        },
+        ">=" => {
+            let first = stack.pop().expect("There is no number to be compared.");
+            let second = stack.pop().expect("There is no number to be compared.");
+            stack.push(if second >= first { 1 } else { 0 });
+        },
+        "pop" => {
+            stack.pop().expect("There is no number to be printed");
+        },
+        "clone" => {
+            let top = stack.pop().expect("There is no number to be clonned");
+            stack.push(top);
+            stack.push(top);
+        }
         "printint" => {
              print!("{}", stack.last().expect("There is no number to be printed"));           
         },
