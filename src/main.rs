@@ -62,9 +62,16 @@ fn lex(content: &String) -> Maybe<Vec<Token>> {
     result.push(Token { kind: TokenKind::Empty, content: String::new(), line: 0 , pos: 0 });
     let mut pos = 0;
     let mut line = 0;
+    let mut in_comment = false;
     for character in content.chars() {
         let last = result.last_mut().unwrap();
         pos += 1;
+        if in_comment {
+            if character == '\n' {
+                in_comment = false;
+            }
+            continue;
+        }
         match character {
             '0'..='9' => {
                 last.content.push(character);
@@ -109,6 +116,9 @@ fn lex(content: &String) -> Maybe<Vec<Token>> {
                         last.content.push(character);
                     }
                 }
+            },
+            '#' => {
+                in_comment = true;
             },
             _ => {
                 match last.kind {
@@ -238,6 +248,17 @@ fn call(stack: &mut Vec<i64>, tokens: &mut TokenColelction) {
         "pop" => {
             stack.pop().expect(&error("There is no number to be printed.", token.line, token.pos));
         },
+        "env" => {
+            let mut key = String::new();
+            while *stack.last().expect(&error("String didnt end with \\0.", token.line, token.pos)) != 0 {
+                 key.push(stack.pop().expect(&error("There is no character to be printed.", token.line, token.pos)).to_string().parse::<u8>().expect("Number cant be negative to be printed as char.") as char)
+            }
+
+            stack.push(0);
+            for ch in env::var(key).unwrap().chars().rev() {
+                stack.push(ch as i64);
+            }
+        }
         "clone" => {
             let top = stack.pop().expect(&error("There is no number to be clonned.", token.line, token.pos));
             stack.push(top);

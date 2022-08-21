@@ -1,0 +1,5 @@
+#!../target/debug/dort
+
+"Content-Type: text/html" putstring 10 putchar 10 putchar
+
+"REQUEST_METHOD" env putstring 
