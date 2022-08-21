@@ -1,4 +1,4 @@
-use std::{process::exit, io, fs, path::Path, env};
+use std::{process::exit, io, fs, env};
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 enum TokenKind {
@@ -26,6 +26,10 @@ enum Maybe<T> {
 struct TokenColelction {
     tokens: Vec<Token>,
     pointer: usize
+}
+
+fn error(error: &str, line: u64, pos: u64) -> String {
+    return format!("Error: {} at line {}, pos {}", error, line, pos); 
 }
 
 impl TokenColelction {
@@ -96,7 +100,7 @@ fn lex(content: &String) -> Maybe<Vec<Token>> {
                     }, 
                     TokenKind::Char => {
                         if last.content.len() == 1 {
-                            return Maybe::Error("Bad char format".to_string());
+                            return Maybe::Error(error("Bad char format", line, pos));
                         }
                         last.content.push(character);
                     },
@@ -110,7 +114,7 @@ fn lex(content: &String) -> Maybe<Vec<Token>> {
                 match last.kind {
                     TokenKind::Char => {
                         if last.content.len() == 1 {
-                            return Maybe::Error("Bad char format".to_string());
+                            return Maybe::Error(error("Bad char format", line, pos));
                         }
                     },
                     TokenKind::Int => {
@@ -157,7 +161,8 @@ fn evaluate_token(tokens: &mut TokenColelction, stack: &mut Vec<i64>) {
             stack.push(tokens.curent().unwrap().content.parse::<i64>().unwrap());
         },
         TokenKind::Char => {
-            stack.push(tokens.curent().unwrap().content.chars().next().expect("Empty characters are not allowed.") as i64);
+            let token = tokens.curent().unwrap();
+            stack.push(token.content.chars().next().expect(&error("Empty characters are not allowed.", token.line, token.pos)) as i64);
         },
         TokenKind::String => {
             stack.push(0);
@@ -173,87 +178,119 @@ fn evaluate_token(tokens: &mut TokenColelction, stack: &mut Vec<i64>) {
 }
 
 fn call(stack: &mut Vec<i64>, tokens: &mut TokenColelction) {
-    match tokens.curent().unwrap().content.as_str() {
+    let token = tokens.curent().unwrap();
+    match token.content.as_str() {
         "+" => {
-            let first = stack.pop().expect("There is no number to be added.");
-            let second = stack.pop().expect("There is no number to be added.");
+            let first = stack.pop().expect(&error("There is no number to be added.", token.line, token.pos));
+            let second = stack.pop().expect(&error("There is no number to be added.", token.line, token.pos));
             stack.push(first + second);
         },
         "-" => {
-            let first = stack.pop().expect("There is no number to be subtracted.");
-            let second = stack.pop().expect("There is no number to be substracted.");
+            let first = stack.pop().expect(&error("There is no number to be added.", token.line, token.pos));
+            let second = stack.pop().expect(&error("There is no number to be added.", token.line, token.pos));
             stack.push(second - first);
         },
         "*" => {
-            let first = stack.pop().expect("There is no number to be multiplied.");
-            let second = stack.pop().expect("There is no number to be multiplied.");
+            let first = stack.pop().expect(&error("There is no number to be added.", token.line, token.pos));
+            let second = stack.pop().expect(&error("There is no number to be added.", token.line, token.pos));
             stack.push(first * second);
         },
         "/" => {
-            let first = stack.pop().expect("There is no number to be divided.");
-            let second = stack.pop().expect("There is no number to be divided.");
+            let first = stack.pop().expect(&error("There is no number to be divided.", token.line, token.pos));
+            let second = stack.pop().expect(&error("There is no number to be divided.", token.line, token.pos));
             stack.push(second / first);
         },
         "%" => {
-            let first = stack.pop().expect("There is no number to be divided .");
-            let second = stack.pop().expect("There is no number to be divided.");
+            let first = stack.pop().expect(&error("There is no number to be divided .", token.line, token.pos));
+            let second = stack.pop().expect(&error("There is no number to be divided.", token.line, token.pos));
             stack.push(second.rem_euclid(first));
         },
         "==" => {
-            let first = stack.pop().expect("There is no number to be compared.");
-            let second = stack.pop().expect("There is no number to be compared.");
+            let first = stack.pop().expect(&error("There is no number to be compared.", token.line, token.pos));
+            let second = stack.pop().expect(&error("There is no number to be compared.", token.line, token.pos));
             stack.push(if second == first { 1 } else { 0 });
         },
         "!=" => {
-            let first = stack.pop().expect("There is no number to be compared.");
-            let second = stack.pop().expect("There is no number to be compared.");
+            let first = stack.pop().expect(&error("There is no number to be compared.", token.line, token.pos));
+            let second = stack.pop().expect(&error("There is no number to be compared.", token.line, token.pos));
             stack.push(if second != first { 1 } else { 0 });
         },
         "<" => {
-            let first = stack.pop().expect("There is no number to be compared.");
-            let second = stack.pop().expect("There is no number to be compared.");
+            let first = stack.pop().expect(&error("There is no number to be compared.", token.line, token.pos));
+            let second = stack.pop().expect(&error("There is no number to be compared.", token.line, token.pos));
             stack.push(if second < first { 1 } else { 0 });
         },
         ">" => {
-            let first = stack.pop().expect("There is no number to be compared.");
-            let second = stack.pop().expect("There is no number to be compared.");
+            let first = stack.pop().expect(&error("There is no number to be compared.", token.line, token.pos));
+            let second = stack.pop().expect(&error("There is no number to be compared.", token.line, token.pos));
             stack.push(if second > first { 1 } else { 0 });
         },
         "<=" => {
-            let first = stack.pop().expect("There is no number to be compared.");
-            let second = stack.pop().expect("There is no number to be compared.");
+            let first = stack.pop().expect(&error("There is no number to be compared.", token.line, token.pos));
+            let second = stack.pop().expect(&error("There is no number to be compared.", token.line, token.pos));
             stack.push(if second <= first { 1 } else { 0 });
         },
         ">=" => {
-            let first = stack.pop().expect("There is no number to be compared.");
-            let second = stack.pop().expect("There is no number to be compared.");
+            let first = stack.pop().expect(&error("There is no number to be compared.", token.line, token.pos));
+            let second = stack.pop().expect(&error("There is no number to be compared.", token.line, token.pos));
             stack.push(if second >= first { 1 } else { 0 });
         },
         "pop" => {
-            stack.pop().expect("There is no number to be printed");
+            stack.pop().expect(&error("There is no number to be printed.", token.line, token.pos));
         },
         "clone" => {
-            let top = stack.pop().expect("There is no number to be clonned");
+            let top = stack.pop().expect(&error("There is no number to be clonned.", token.line, token.pos));
             stack.push(top);
             stack.push(top);
         }
         "printint" => {
-             print!("{}", stack.last().expect("There is no number to be printed"));           
+             print!("{}", stack.last().expect(&error("There is no number to be printed.", token.line, token.pos)));           
         },
         "putchar" => {
-            print!("{}", stack.pop().expect("There is no character to be printed").to_string().parse::<u8>().expect("Number cant be negative to be printed as char.") as char)
+            print!("{}", stack.pop().expect(&error("There is no character to be printed.", token.line, token.pos)).to_string().parse::<u8>().expect("Number cant be negative to be printed as char.") as char)
         },
         "putstring" => {
-            while *stack.last().expect("String didnt end with \\0.") != 0 {
-                print!("{}", stack.pop().expect("There is no character to be printed").to_string().parse::<u8>().expect("Number cant be negative to be printed as char.") as char)
+            while *stack.last().expect(&error("String didnt end with \\0.", token.line, token.pos)) != 0 {
+                print!("{}", stack.pop().expect(&error("There is no character to be printed.", token.line, token.pos)).to_string().parse::<u8>().expect("Number cant be negative to be printed as char.") as char)
             }
             stack.pop();
         }, 
         "if" => {
-            if *stack.last().expect("Cant perform if because stack is empty") == 0 {
+            if *stack.last().expect(&error("Cant perform if because stack is empty", token.line, token.pos)) == 0 {
                 let mut unclosed = 0;
                 tokens.next();
+                let mut in_else = false;
                 while tokens.curent().expect("Unclosed if").content != "fi" || unclosed != 0 {
+                    if in_else {
+                        evaluate_token(tokens, stack);
+                    }
+
+                    if unclosed == 0 && tokens.curent().unwrap().content == "else" {
+                        in_else = true
+                    }
+
+                    if tokens.curent().unwrap().content == "if" {
+                        unclosed += 1
+                    }
+                    
+                    if tokens.curent().unwrap().content == "fi" {
+                        unclosed -= 1
+                    }
+                    tokens.next();
+                }
+            } else {
+                let mut unclosed = 0;
+                tokens.next();
+                let mut in_else = false;
+                while tokens.curent().expect("Unclosed if").content != "fi" || unclosed != 0 {
+                    if !in_else {
+                        evaluate_token(tokens, stack);
+                    }
+
+                    if unclosed == 0 && tokens.curent().unwrap().content == "else" {
+                        in_else = true
+                    }
+
                     if tokens.curent().unwrap().content == "if" {
                         unclosed += 1
                     }
@@ -266,6 +303,7 @@ fn call(stack: &mut Vec<i64>, tokens: &mut TokenColelction) {
             }
         },
         "fi" => {},
+        "else" => {},
         "scanint" => {
             let mut result = String::new();
             io::stdin().read_line(&mut result).expect("No input");
